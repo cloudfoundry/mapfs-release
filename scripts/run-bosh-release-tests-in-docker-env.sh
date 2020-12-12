@@ -29,5 +29,5 @@ run \
 --env BOSH_CA_CERT=${BOSH_CA_CERT} \
 --env MAPFS_RELEASE_PATH=/mapfs-release \
 --env GO111MODULE=off \
-cfpersi/bosh-release-tests \
+harbor-repo.vmware.com/dockerhub-proxy-cache/cfpersi/bosh-release-tests \
 $COMMAND_TO_RUN
