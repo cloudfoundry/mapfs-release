@@ -3,13 +3,14 @@ package bosh_release_test
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"os/exec"
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	"os"
-	"os/exec"
-	"time"
 
 	"testing"
 )
@@ -24,7 +25,7 @@ var dpkgLockBuildPackagePath string
 var _ = BeforeSuite(func() {
 	var err error
 
-	dpkgLockBuildPackagePath, err = gexec.BuildIn("/mapfs-release", "bosh_release/assets/acquire_dpkg_lock")
+	dpkgLockBuildPackagePath, err = gexec.BuildWithEnvironment("bosh_release/assets/acquire_dpkg_lock", []string{"GOPATH=/mapfs-release", "GO111MODULE=off"})
 	Expect(err).ShouldNot(HaveOccurred())
 
 	SetDefaultEventuallyTimeout(10 * time.Minute)
@@ -37,7 +38,7 @@ var _ = BeforeSuite(func() {
 })
 
 func deploy(opsfiles ...string) {
-	deployCmd := []string {"deploy",
+	deployCmd := []string{"deploy",
 		"-n",
 		"-d",
 		"bosh_release_test",
@@ -58,12 +59,11 @@ func deploy(opsfiles ...string) {
 }
 
 func undeploy() {
-	deleteDeployCmd := []string {"deld",
+	deleteDeployCmd := []string{"deld",
 		"-n",
 		"-d",
 		"bosh_release_test",
 	}
-
 
 	boshDeployCmd := exec.Command("bosh", deleteDeployCmd...)
 	session, err := gexec.Start(boshDeployCmd, GinkgoWriter, GinkgoWriter)
