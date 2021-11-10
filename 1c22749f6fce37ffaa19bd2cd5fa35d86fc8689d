@@ -1,0 +1,7 @@
+{
+  "pr": "9",
+  "repository": "cloudfoundry/mapfs-release",
+  "base_branch": "master",
+  "head_branch": "dependabot/submodules/src/mapfs-1cf9ab8",
+  "branch_tip": "1c22749f6fce37ffaa19bd2cd5fa35d86fc8689d"
+}
