@@ -33,7 +33,7 @@ ENV GOROOT=/usr/local/go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
 ENV GO111MODULE=on
-RUN go get github.com/onsi/ginkgo/ginkgo@$(cat /tmp/ginkgo_version)
+RUN go install github.com/onsi/ginkgo/ginkgo@$(cat /tmp/ginkgo_version)
 ENV GOFLAGS=-mod=vendor
 
 RUN sed -i 's/VFS/MEM/' /start.sh
