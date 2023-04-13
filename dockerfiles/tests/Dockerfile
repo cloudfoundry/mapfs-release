@@ -2,7 +2,6 @@ FROM relintdockerhubpushbot/cf-deployment-concourse-tasks as golang_version
 RUN git clone --recurse-submodules https://github.com/cloudfoundry/mapfs-release
 RUN cd mapfs-release && bosh create-release --tarball /tmp/release.tgz
 RUN version=$(cat /tmp/release.tgz | tar -Oxz packages/golang-1-linux.tgz | tar z --list | grep -ohE "go[0-9]\.[0-9]{1,2}\.[0-9]{1,2}") && echo $version > /tmp/golang_version
-RUN ginkgo_version=$(cd mapfs-release/src/bosh_release/ && go list -f "{{.Version}}" -m github.com/onsi/ginkgo > /tmp/ginkgo_version)
 
 FROM apnar/nfs-ganesha
 
@@ -22,19 +21,11 @@ RUN apt-get install -y build-essential
 RUN apt-get install -y wget
 
 COPY --from=golang_version /tmp/golang_version /tmp/golang_version
-COPY --from=golang_version /tmp/ginkgo_version /tmp/ginkgo_version
 RUN wget https://dl.google.com/go/$(cat /tmp/golang_version).linux-amd64.tar.gz
 RUN tar -xvf $(cat /tmp/golang_version).linux-amd64.tar.gz
 RUN mv go /usr/local
 
 ENV PATH "$PATH:/usr/local/go/bin"
-ENV GOPATH /go
-ENV GOROOT=/usr/local/go
-ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
-RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
-ENV GO111MODULE=on
-RUN go install github.com/onsi/ginkgo/ginkgo@$(cat /tmp/ginkgo_version)
-ENV GOFLAGS=-mod=vendor
 
 RUN sed -i 's/VFS/MEM/' /start.sh
 RUN sed -i 's#^EXPORT#NFSV4 \{ Graceless = true; \}\nEXPORT#' /start.sh
