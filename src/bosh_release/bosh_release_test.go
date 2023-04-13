@@ -2,12 +2,13 @@ package bosh_release_test
 
 import (
 	"fmt"
-	. "github.com/onsi/ginkgo"
+	"os/exec"
+	"time"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	"os/exec"
-	"time"
 )
 
 var _ = Describe("BoshReleaseTest", func() {
@@ -149,7 +150,7 @@ func expectFileNotInstalled(filePath string) {
 }
 
 func scp(localPath string, remotePath string) {
-	cmd := exec.Command("bosh", "-d", "bosh_release_test", "scp", localPath, "mapfs:" + remotePath)
+	cmd := exec.Command("bosh", "-d", "bosh_release_test", "scp", localPath, "mapfs:"+remotePath)
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(gexec.Exit(0), string(session.Out.Contents()))
