@@ -93,6 +93,8 @@ builds:
     version: 1.2.8
   fa570f86-57bb-4457-54a8-60a5b877312b:
     version: 1.2.6
+  fba80d9e-4cd4-424a-556e-4b74168618b7:
+    version: 1.2.41
   fda0ebcf-a065-489c-4780-adf198d250d1:
     version: 1.1.4
 format-version: "2"
