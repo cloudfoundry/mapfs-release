@@ -31,5 +31,5 @@ run \
 --env BOSH_CLIENT_SECRET=${BOSH_CLIENT_SECRET} \
 --env BOSH_CA_CERT=${BOSH_CA_CERT} \
 --env MAPFS_RELEASE_PATH=/mapfs-release \
-cfpersi/bosh-release-tests \
+"${DOCKER_IMAGE:-cfpersi/bosh-release-tests}" \
 $COMMAND_TO_RUN
