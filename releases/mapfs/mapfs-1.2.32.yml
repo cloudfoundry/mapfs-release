@@ -1,0 +1,33 @@
+name: mapfs
+version: 1.2.32
+commit_hash: "8779565"
+uncommitted_changes: false
+jobs:
+- name: mapfs
+  version: 20f27e8dc655b69e7d63d987cb4e280233fcc160f8909f183ccc72e57ab1e558
+  fingerprint: 20f27e8dc655b69e7d63d987cb4e280233fcc160f8909f183ccc72e57ab1e558
+  sha1: sha256:41bf5ed4aeff5ce88f76571199ef46e640247d5d7a928b82c8f4f684ab64bac9
+  packages:
+  - mapfs
+  - mapfs-fuse
+packages:
+- name: golang-1-linux
+  version: b09468ac73cd3350333a35eb09c980c6a06c5465be0e1ba430da62757dc10a04
+  fingerprint: b09468ac73cd3350333a35eb09c980c6a06c5465be0e1ba430da62757dc10a04
+  sha1: sha256:ea461525fb19ffd4c2753f98e3d740d426ed19872c4b1700413ae8100954a22a
+  dependencies: []
+- name: mapfs
+  version: e6992dabfa83a58d73af7922d0003242b56b9e2e6f966e698e41ab4048a1f952
+  fingerprint: e6992dabfa83a58d73af7922d0003242b56b9e2e6f966e698e41ab4048a1f952
+  sha1: sha256:96a7617051814e24bb0df7e387cc785a25d359e8b2a6fae7f6c35d0021a21d7a
+  dependencies:
+  - golang-1-linux
+- name: mapfs-fuse
+  version: 0c4a2c59f679b377d6f9f794c424f86fdaf620136b2adf355d7eba874df65f63
+  fingerprint: 0c4a2c59f679b377d6f9f794c424f86fdaf620136b2adf355d7eba874df65f63
+  sha1: sha256:13259d7a9eb8df25c8f13cb62b4ceceaf5bbb00a187766994561c304d0220fe9
+  dependencies: []
+license:
+  version: 92885b6e2e76657597148d57bc52b4a2c47df2d62d5dc5296e2550a6b3eeb679
+  fingerprint: 92885b6e2e76657597148d57bc52b4a2c47df2d62d5dc5296e2550a6b3eeb679
+  sha1: sha256:8e887f32501cf0e7fe4650da3e18e3aedc5d6acdb517494a2a1a3a974d1df0a2
