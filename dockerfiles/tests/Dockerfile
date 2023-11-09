@@ -3,7 +3,7 @@ RUN git clone --recurse-submodules https://github.com/cloudfoundry/mapfs-release
 RUN cd mapfs-release && bosh create-release --tarball /tmp/release.tgz
 RUN version=$(cat /tmp/release.tgz | tar -Oxz packages/golang-1-linux.tgz | tar z --list | grep -ohE "go[0-9]\.[0-9]{1,2}\.[0-9]{1,2}") && echo $version > /tmp/golang_version
 
-FROM apnar/nfs-ganesha
+FROM harbor-repo.vmware.com/dockerhub-proxy-cache/apnar/nfs-ganesha
 
 RUN DEBIAN_FRONTEND=noninteractive \
      && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3FE869A9 \
