@@ -19,20 +19,13 @@ func TestBoshReleaseTest(t *testing.T) {
 	RunSpecs(t, "BoshReleaseTest Suite")
 }
 
-var dpkgLockBuildPackagePath string
-
 var _ = BeforeSuite(func() {
 	var err error
-
-	dpkgLockBuildPackagePath, err = gexec.BuildWithEnvironment("bosh_release/assets/acquire_dpkg_lock", []string{"GOPATH=/mapfs-release", "GO111MODULE=off"})
 	Expect(err).ShouldNot(HaveOccurred())
-
 	SetDefaultEventuallyTimeout(10 * time.Minute)
-
 	if !hasStemcell() {
 		uploadStemcell()
 	}
-
 	deploy()
 })
 
