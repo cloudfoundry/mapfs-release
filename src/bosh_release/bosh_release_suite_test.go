@@ -46,6 +46,7 @@ func deploy(opsfiles ...string) {
 		"-d",
 		deployment_name,
 		"./mapfs-manifest.yml",
+		"-v", fmt.Sprintf("deployment_name=%s", deployment_name),
 		"-v", fmt.Sprintf("path_to_mapfs_release=%s", os.Getenv("MAPFS_RELEASE_PATH")),
 		"-v", fmt.Sprintf("stemcell_lin=%s", stemcell_line),
 	}
