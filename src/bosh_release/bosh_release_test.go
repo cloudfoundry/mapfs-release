@@ -23,7 +23,7 @@ var _ = Describe("BoshReleaseTest", func() {
 	Context("when mapfs is disabled", func() {
 
 		BeforeEach(func() {
-			cmd := exec.Command("bosh", "-d", "bosh_release_test", "delete-deployment", "-n")
+			cmd := exec.Command("bosh", "-d", deployment_name, "delete-deployment", "-n")
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session).Should(gexec.Exit(0))
@@ -38,14 +38,14 @@ var _ = Describe("BoshReleaseTest", func() {
 })
 
 func expectFileInstalled(filePath string) {
-	cmd := exec.Command("bosh", "-d", "bosh_release_test", "ssh", "-c", fmt.Sprintf("stat %s", filePath))
+	cmd := exec.Command("bosh", "-d", deployment_name, "ssh", "-c", fmt.Sprintf("stat %s", filePath))
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(gexec.Exit(0), fmt.Sprintf("file [%s] was not found", filePath))
 }
 
 func expectFileNotInstalled(filePath string) {
-	cmd := exec.Command("bosh", "-d", "bosh_release_test", "ssh", "-c", fmt.Sprintf("stat %s", filePath))
+	cmd := exec.Command("bosh", "-d", deployment_name, "ssh", "-c", fmt.Sprintf("stat %s", filePath))
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(gexec.Exit(1), fmt.Sprintf("file [%s] was found when it should not have", filePath))
