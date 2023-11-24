@@ -37,12 +37,17 @@ var _ = BeforeSuite(func() {
 })
 
 func deploy(opsfiles ...string) {
+	stemcell_line := os.Getenv("STEMCELL")
+	if stemcell_line == "" {
+		stemcell_line = "jammy"
+	}
 	deployCmd := []string{"deploy",
 		"-n",
 		"-d",
 		"bosh_release_test",
 		"./mapfs-manifest.yml",
 		"-v", fmt.Sprintf("path_to_mapfs_release=%s", os.Getenv("MAPFS_RELEASE_PATH")),
+		"-v", fmt.Sprintf("stemcell_lin=%s", stemcell_line),
 	}
 
 	updatedDeployCmd := make([]string, len(deployCmd))
