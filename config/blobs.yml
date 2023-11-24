@@ -1,9 +1,12 @@
 build-deps/meson-0.56.2.tar.gz:
   size: 1794847
+  object_id: c9b74cbe-827b-44e8-7fc8-773ba4222568
   sha: sha256:3cb8bdb91383f7f8da642f916e4c44066a29262caa499341e2880f010edb87f4
 build-deps/ninja-v1.11.1.tar.gz:
   size: 229479
+  object_id: 4814b814-6a72-4ea4-530d-adc8f9b97ec7
   sha: sha256:31747ae633213f1eda3842686f83c2aa1412e0f5691d1c14dbbcc67fe7400cea
 fuse/fuse-3.16.2.tar.gz:
   size: 14165836
+  object_id: 7c5fb833-6dca-41bb-5e7d-e9c5de0e9db0
   sha: sha256:f797055d9296b275e981f5f62d4e32e089614fc253d1ef2985851025b8a0ce87
