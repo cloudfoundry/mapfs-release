@@ -14,6 +14,11 @@ function main() {
     ln -s /var/vcap/packages/mapfs-fuse/sbin/mount.fuse3 /sbin/mount.fuse3
   fi
 
+  if [[ ! -f /bin/fusermount ]]; then
+    echo "symlinking fusermount3 to /bin/fusermount"
+    ln -s /var/vcap/packages/mapfs-fuse/bin/fusermount3 /bin/fusermount
+  fi
+
   for f in $( find /var/vcap/packages/mapfs-fuse/lib/x86_64-linux-gnu/ -name  "*.so*" ); do 
     FILENAME=$(basename $f)
     if [[ ! -f /lib/${FILENAME} ]]; then
