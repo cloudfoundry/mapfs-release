@@ -1,3 +1,7 @@
+fuse/fuse-3.16.2.tar.gz:
+  size: 14165836
+  object_id: 0f4061c3-525b-4ada-6b8e-ecc18759426b
+  sha: sha256:f797055d9296b275e981f5f62d4e32e089614fc253d1ef2985851025b8a0ce87
 fuse/xenial/fuse_2.9.7-1+deb9u2_amd64.deb:
   size: 71458
   object_id: 40c3d3f0-124e-4d63-66c6-2dc8b6c5875a
