@@ -13,17 +13,23 @@ function main() {
     echo "symlinking fuse mounthelper binary to /sbin"
     ln -s /var/vcap/packages/mapfs-fuse/sbin/mount.fuse3 /sbin/mount.fuse3
   fi
-
   if [[ ! -f /bin/fusermount ]]; then
     echo "symlinking fusermount3 to /bin/fusermount"
     ln -s /var/vcap/packages/mapfs-fuse/bin/fusermount3 /bin/fusermount
   fi
-
-  for f in $( find /var/vcap/packages/mapfs-fuse/lib/x86_64-linux-gnu/ -name  "*.so*" ); do 
-    FILENAME=$(basename $f)
-    if [[ ! -f /lib/${FILENAME} ]]; then
-      echo "symlinking shared lib ${FILENAME} to /lib"
-      ln -s $f /lib/${FILENAME}
+  for FULL_PATH in $( find /var/vcap/packages/mapfs-fuse/lib/x86_64-linux-gnu/ -name  "*.so*" ); do 
+ 
+    if [[ -L $FULL_PATH ]]; then
+      RESOLVED_PATH=$(readlink -f $FULL_PATH)
+      LINK_NAME=$(basename $FULL_PATH )
+      if [[ ! -f /lib/$LINK_NAME ]]; then
+        echo "creating a symlink from /lib/$LINK_NAME to $RESOLVED_PATH"
+        ln -s $RESOLVED_PATH /lib/$LINK_NAME
+      fi
+    else
+      TARGET_NAME=$(basename $FULL_PATH)
+      echo "symlinking shared lib ${FULL_PATH} to /lib/$TARGET_NAME"
+      ln -s $FULL_PATH /lib/${TARGET_NAME}
     fi
   done
 
