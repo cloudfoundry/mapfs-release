@@ -27,9 +27,11 @@ function main() {
         ln -s $RESOLVED_PATH /lib/$LINK_NAME
       fi
     else
-      TARGET_NAME=$(basename $FULL_PATH)
-      echo "symlinking shared lib ${FULL_PATH} to /lib/$TARGET_NAME"
-      ln -s $FULL_PATH /lib/${TARGET_NAME}
+      if [ ! -f /lib/${TARGET_NAME} ]]; then
+        TARGET_NAME=$(basename $FULL_PATH)
+        echo "symlinking shared lib ${FULL_PATH} to /lib/$TARGET_NAME"
+        ln -s $FULL_PATH /lib/${TARGET_NAME}
+      fi
     fi
   done
 
