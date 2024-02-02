@@ -8,31 +8,33 @@ function prepend_rfc3339_datetime() {
 }
 
 function main() {
+  # [[ -f .../ ]] does resolve links.
+  # e.g.
+  # ln -s /test/non-existing-target symlink-to-nonexisting
+  # [[ -f ./symlink-to-nonexisting ]] => 1
+  # touch /test/existing-target
+  # ln -s /test/existing-target symlink-to-existing
+  # [[ -f ./symlink-to-existing ]] => 0
+
+  # /var/vcap/packages/mapfs-fuse itself is a symlink
+  # e.g:
+  # /var/vcap/packages/mapfs-fuse -> /var/vcap/data/packages/mapfs-fuse/7b0feec064cdabced95809f129c7ba1495afeede
+  # We will need to always overwrite the symlinks, because in a scenario where this release gets updated but the 
+  # VM stays the same, we need to relink because the target of `/var/vcap/packages/mapfs-fuse` changed.
 
   if [[ ! -f /sbin/mount.fuse3 ]]; then
     echo "symlinking fuse mounthelper binary to /sbin"
-    ln -s /var/vcap/packages/mapfs-fuse/sbin/mount.fuse3 /sbin/mount.fuse3
+    ln -fs "$( readlink -f /var/vcap/packages/mapfs-fuse/sbin/mount.fuse3 )" /sbin/mount.fuse3
   fi
   if [[ ! -f /bin/fusermount ]]; then
     echo "symlinking fusermount3 to /bin/fusermount"
-    ln -s /var/vcap/packages/mapfs-fuse/bin/fusermount3 /bin/fusermount
+    ln -fs "$( readlink -f /var/vcap/packages/mapfs-fuse/bin/fusermount3 )" /bin/fusermount
   fi
-  for FULL_PATH in $( find /var/vcap/packages/mapfs-fuse/lib/x86_64-linux-gnu/ -name  "*.so*" ); do 
  
-    if [[ -L $FULL_PATH ]]; then
-      RESOLVED_PATH=$(readlink -f $FULL_PATH)
-      LINK_NAME=$(basename $FULL_PATH )
-      if [[ ! -f /lib/$LINK_NAME ]]; then
-        echo "creating a symlink from /lib/$LINK_NAME to $RESOLVED_PATH"
-        ln -s $RESOLVED_PATH /lib/$LINK_NAME
-      fi
-    else
-      if [ ! -f /lib/${TARGET_NAME} ]]; then
-        TARGET_NAME=$(basename $FULL_PATH)
-        echo "symlinking shared lib ${FULL_PATH} to /lib/$TARGET_NAME"
-        ln -s $FULL_PATH /lib/${TARGET_NAME}
-      fi
-    fi
+  for FULL_PATH in $( find /var/vcap/packages/mapfs-fuse/lib/x86_64-linux-gnu/ -name  "*.so*" ); do 
+    TARGET_PATH="$( readlink -f $FULL_PATH )"
+    LINK_NAME="$( basename $FULL_PATH )"
+    ln -sf "$TARGET_PATH" "/lib/$LINK_NAME"
   done
 
   modprobe fuse || true
