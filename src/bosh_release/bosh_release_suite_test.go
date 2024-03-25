@@ -14,35 +14,41 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
+var deployment_name string
+
 func TestBoshReleaseTest(t *testing.T) {
 	RegisterFailHandler(Fail)
+	deployment_name = os.Getenv("DEPLOYMENT_NAME")
+	if deployment_name == "" {
+		deployment_name = "bosh_release_test_mapfs"
+	}
+
 	RunSpecs(t, "BoshReleaseTest Suite")
 }
 
-var dpkgLockBuildPackagePath string
-
 var _ = BeforeSuite(func() {
 	var err error
-
-	dpkgLockBuildPackagePath, err = gexec.BuildWithEnvironment("bosh_release/assets/acquire_dpkg_lock", []string{"GOPATH=/mapfs-release", "GO111MODULE=off"})
 	Expect(err).ShouldNot(HaveOccurred())
-
 	SetDefaultEventuallyTimeout(10 * time.Minute)
-
 	if !hasStemcell() {
 		uploadStemcell()
 	}
-
 	deploy()
 })
 
 func deploy(opsfiles ...string) {
+	stemcell_line := os.Getenv("STEMCELL")
+	if stemcell_line == "" {
+		stemcell_line = "jammy"
+	}
 	deployCmd := []string{"deploy",
 		"-n",
 		"-d",
-		"bosh_release_test",
+		deployment_name,
 		"./mapfs-manifest.yml",
+		"-v", fmt.Sprintf("deployment_name=%s", deployment_name),
 		"-v", fmt.Sprintf("path_to_mapfs_release=%s", os.Getenv("MAPFS_RELEASE_PATH")),
+		"-v", fmt.Sprintf("stemcell_lin=%s", stemcell_line),
 	}
 
 	updatedDeployCmd := make([]string, len(deployCmd))
@@ -61,7 +67,7 @@ func undeploy() {
 	deleteDeployCmd := []string{"deld",
 		"-n",
 		"-d",
-		"bosh_release_test",
+		deployment_name,
 	}
 
 	boshDeployCmd := exec.Command("bosh", deleteDeployCmd...)

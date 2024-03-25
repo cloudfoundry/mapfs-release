@@ -1,4 +1,4 @@
-name: bosh_release_test
+name: ((deployment_name))
 
 releases:
   - name: mapfs
