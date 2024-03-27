@@ -88,7 +88,7 @@ func hasStemcell() bool {
 }
 
 func uploadStemcell() {
-	boshUsCmd := exec.Command("bosh", "upload-stemcell", "https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-xenial-go_agent")
+	boshUsCmd := exec.Command("bosh", "upload-stemcell", "https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-jammy-go_agent")
 	session, err := gexec.Start(boshUsCmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session, 20*time.Minute).Should(gexec.Exit(0))
