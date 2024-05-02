@@ -11,5 +11,5 @@ docker run \
 -e DEV=TRUE \
 -v ~/workspace/mapfs-release:/mapfs-release \
 --workdir=/ \
-bosh/main-bosh-docker \
+bosh/docker-cpi \
 /mapfs-release/scripts/run-bosh-release-tests-in-docker-env.sh

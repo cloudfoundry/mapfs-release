@@ -4,14 +4,13 @@ platform: linux
 image_resource:
   type: registry-image
   source:
-    registry_mirror:
-      host: harbor-repo.vmware.com
-    repository: dockerhub-proxy-cache/bosh/main-bosh-docker
+    repository: bosh/docker-cpi
     tag: latest
 
 inputs:
   - name: mapfs-release-concourse-tasks
   - name: mapfs-release
+  - name: image
 
 run:
   path: mapfs-release-concourse-tasks/scripts/ci/run_bosh_release_tests
