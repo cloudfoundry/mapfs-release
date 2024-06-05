@@ -1,6 +1,6 @@
 module code.cloudfoundry.org/bosh_release
 
-go 1.22.3
+go 1.22.4
 
 require (
 	github.com/onsi/ginkgo/v2 v2.19.0
