@@ -10,6 +10,10 @@ build-deps/ninja-v1.11.1.tar.gz:
   size: 229479
   object_id: 4814b814-6a72-4ea4-530d-adc8f9b97ec7
   sha: sha256:31747ae633213f1eda3842686f83c2aa1412e0f5691d1c14dbbcc67fe7400cea
+build-deps/ninja-v1.12.1.tar.gz:
+  size: 240524
+  object_id: 6ef4bdc0-fddb-4fa3-54cf-0c8644af63af
+  sha: sha256:b5fba43f9d24c9d3d3aa16be3af1d925f18f73eace71f83d064e1a16c9b15134
 fuse/fuse-3.16.2.tar.gz:
   size: 14165836
   object_id: 7c5fb833-6dca-41bb-5e7d-e9c5de0e9db0
