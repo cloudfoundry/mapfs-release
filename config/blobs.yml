@@ -1,7 +1,7 @@
-build-deps/meson-1.5.0.tar.gz:
-  size: 2257170
-  object_id: 14d73d7f-5e2b-46e0-6e52-948ee90ad64b
-  sha: sha256:45d7b8653c1e5139df35b33be2dd5b2d040c5b2c6129f9a7c890d507e33312b8
+build-deps/meson-1.5.1.tar.gz:
+  size: 2257106
+  object_id: 5a3bf0fb-07b0-4d87-7339-b4808c7cf94d
+  sha: sha256:567e533adf255de73a2de35049b99923caf872a455af9ce03e01077e0d384bed
 build-deps/ninja-v1.12.1.tar.gz:
   size: 240524
   object_id: 6ef4bdc0-fddb-4fa3-54cf-0c8644af63af
