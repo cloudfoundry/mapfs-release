@@ -1,5 +1,9 @@
 module code.cloudfoundry.org/mapfs
 
+go 1.22.3
+
+toolchain go1.22.5
+
 require (
 	code.cloudfoundry.org/goshims v0.38.0
 	code.cloudfoundry.org/volumedriver v0.96.0
@@ -12,9 +16,10 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
+require github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
+
 require (
-	github.com/go-logr/logr v1.4.2 // indirect
-	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
+	github.com/go-logr/logr v1.4.2 // indirect; indirect github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/pprof v0.0.0-20240727154555-813a5fbdbec8 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
@@ -26,5 +31,3 @@ require (
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/tools v0.23.0 // indirect
 )
-
-go 1.22.4

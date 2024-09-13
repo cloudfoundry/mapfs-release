@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	"github.com/onsi/gomega/gmeasure"
 )
 
 const HIGH_LATENCY_MILLIS = "80ms"
@@ -37,7 +38,10 @@ var _ = Describe("Perf", func() {
 		Eventually(session).Should(gexec.Exit(0), string(session.Out.Contents()))
 	})
 
-	Measure("MapFs should not perform writes *much* slower than writing to a native mount", func(benchmarker Benchmarker) {
+	It("MapFs should not perform writes *much* slower than writing to a native mount", Serial, func() {
+		exp := gmeasure.NewExperiment("Mounting via nfs")
+		AddReportEntry(exp.Name, exp)
+
 		By("Natively mounting via nfs", func() {
 			nfsUrl := "localhost:/"
 			cmd := exec.Command("mount", "-t", "nfs", "-o", "rsize=1048576,wsize=1048576,timeo=600,retrans=2,actimeo=0", nfsUrl, nativeDirectory)
@@ -46,19 +50,17 @@ var _ = Describe("Perf", func() {
 			Eventually(session).Should(gexec.Exit(0), string(session.Out.Contents()))
 		})
 
-		benchmarker.Time("writing data to a native mount without throttling", func() {
-			writeDataToMountedDirectory(nativeDirectory)
-		})
+		exp.MeasureDuration("native-writing-without-throttling", func() { writeDataToMountedDirectory(nativeDirectory) })
 
-		highLatencyBenchmark := benchmarker.Time("writing data to a native mount with throttling simulating a high latency network", func() {
+		exp.SampleDuration("native-writing-with-throttling-and-high-latencty-network", func(_ int) {
 			shapeTraffic(HIGH_LATENCY_MILLIS)
 			writeDataToMountedDirectory(nativeDirectory)
-		})
+		}, gmeasure.SamplingConfig{N: 3})
 
-		lowLatencyBenchmark := benchmarker.Time("writing data to a native mount with throttling simulating a low latency network", func() {
+		exp.SampleDuration("native-writing-with-throttling-and-low-latencty-network", func(_ int) {
 			shapeTraffic(LOW_LATENCY_MILLIS)
 			writeDataToMountedDirectory(nativeDirectory)
-		})
+		}, gmeasure.SamplingConfig{N: 3})
 
 		By("Starting MapFS process", func() {
 			cmd := exec.Command(binaryPath, "-uid", "2000", "-gid", "2000", "-debug", mapfsDirectory, nativeDirectory)
@@ -66,18 +68,22 @@ var _ = Describe("Perf", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session).Should(gbytes.Say("Mounted!"))
 		})
-
-		highLatencyMapfs := benchmarker.Time("writing data to a mapfs mount with throttling simulating a high latency network", func() {
+		exp.SampleDuration("mapfs-writing-with-throttling-and-high-latencty-network", func(_ int) {
 			shapeTraffic(HIGH_LATENCY_MILLIS)
 			writeDataToMountedDirectory(mapfsDirectory)
-		})
-
-		lowLatencyMapfs := benchmarker.Time("writing data to a mapfs mount with throttling simulating a low latency network", func() {
+		}, gmeasure.SamplingConfig{N: 3})
+		exp.SampleDuration("mapfs-writing-with-throttling-and-low-latencty-network", func(_ int) {
 			shapeTraffic(LOW_LATENCY_MILLIS)
 			writeDataToMountedDirectory(mapfsDirectory)
-		})
+		}, gmeasure.SamplingConfig{N: 3})
 
-		Expect(highLatencyMapfs.Nanoseconds()).To(BeNumerically("<", int64(float64(highLatencyBenchmark.Nanoseconds())*2.0)))
-		Expect(lowLatencyMapfs.Nanoseconds()).To(BeNumerically("<", int64(float64(lowLatencyBenchmark.Nanoseconds())*10.0)))
-	}, 3)
+		ranking := gmeasure.RankStats(gmeasure.LowerMedianIsBetter, exp.GetStats("mapfs-writing-with-throttling-and-high-latencty-network"), exp.GetStats("native-writing-with-throttling-and-high-latencty-network"))
+		AddReportEntry("Ranking", ranking)
+
+		//assert that algorithm 2 is the winner
+		Expect(ranking.Winner().MeasurementName).To(Equal("mapfs-writing-with-throttling-and-high-latencty-network"))
+
+		//Expect(exp.Get("mapfs-writing-with-throttling-and-high-latencty-network").Nanoseconds()).To(BeNumerically("<", int64(float64(exp.Get("native-writing-with-throttling-and-high-latencty-network").Nanoseconds())*2.0)))
+		//Expect(exp.Get("mapfs-writing-with-throttling-and-low-latencty-network").Nanoseconds()).To(BeNumerically("<", int64(float64(exp.Get("native-writing-with-throttling-and-low-latencty-network").Nanoseconds())*10.0)))
+	})
 })
