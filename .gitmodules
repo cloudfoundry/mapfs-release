@@ -1,3 +1,4 @@
-[submodule "src/mapfs"]
-	path = src/mapfs
-	url = https://github.com/cloudfoundry/mapfs
+[submodule "src/code.cloudfoundry.org/mapfs/fstest"]
+	path = src/code.cloudfoundry.org/mapfs/fstest
+	url = https://github.com/zfsonlinux/fstest
+	branch = master
