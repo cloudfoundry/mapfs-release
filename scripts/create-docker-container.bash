@@ -10,23 +10,8 @@ REPO_NAME=$(git_get_remote_name)
 REPO_PATH="${THIS_FILE_DIR}/../"
 unset THIS_FILE_DIR
 
-if [[ ${DB:-empty} == "empty" ]]; then
-  DB=mysql
-fi
-
-CONTAINER_NAME="$REPO_NAME-$DB-docker-container"
-if [[ "${DB}" == "mysql" ]] || [[ "${DB}" == "mysql-8.0" ]]; then
-  IMAGE="cloudfoundry/tas-runtime-mysql-8.0"
-  DB="mysql"
-elif [[ "${DB}" == "mysql-5.7" ]]; then
-  IMAGE="cloudfoundry/tas-runtime-mysql-5.7"
-  DB="mysql"
-elif [[ "${DB}" == "postgres" ]]; then
-  IMAGE="cloudfoundry/tas-runtime-postgres"
-else
-  echo "Unsupported DB flavor"
-  exit 1
-fi
+IMAGE="cloudfoundry/tas-runtime-build"
+CONTAINER_NAME="$REPO_NAME-docker-container"
 
 if [[ -z "${*}" ]]; then
   ARGS="-it"
@@ -37,7 +22,6 @@ fi
 docker pull "${IMAGE}"
 docker rm -f $CONTAINER_NAME
 docker run -it \
-  --env "DB=${DB}" \
   --env "REPO_NAME=$REPO_NAME" \
   --env "REPO_PATH=/repo" \
   --rm \

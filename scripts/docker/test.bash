@@ -13,7 +13,6 @@ function test() {
   . <(/ci/shared/helpers/extract-default-params-for-task.bash /ci/shared/tasks/run-bin-test/linux.yml)
 
   export GOFLAGS="-buildvcs=false"
-  export DB="${DB}"
   /ci/shared/tasks/run-bin-test/task.bash "${sub_package}"
 }
 
@@ -29,7 +28,7 @@ if [[ -n "${1:-}" ]]; then
 else
   internal_repos=$(yq -r '.internal_repos[]  | select(.acceptance != true) | .name' "/ci/$REPO_NAME/index.yml")
   for component in $internal_repos; do
-    test "src/${component}"
+    test "src/code.cloudfoundry.org/${component}"
   done
 fi
 popd > /dev/null
