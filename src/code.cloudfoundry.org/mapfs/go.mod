@@ -3,7 +3,7 @@ module code.cloudfoundry.org/mapfs
 require (
 	code.cloudfoundry.org/goshims v0.39.0
 	code.cloudfoundry.org/volumedriver v0.97.0
-	github.com/hanwen/go-fuse/v2 v2.5.1
+	github.com/hanwen/go-fuse/v2 v2.6.1
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.8.1
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
@@ -16,7 +16,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/pprof v0.0.0-20240910150728-a0b0bb1d4134 // indirect
+	github.com/google/pprof v0.0.0-20240929191954-255acd752d31 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
 	golang.org/x/mod v0.21.0 // indirect
