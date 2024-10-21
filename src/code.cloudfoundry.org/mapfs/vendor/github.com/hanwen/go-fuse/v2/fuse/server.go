@@ -67,6 +67,7 @@ type Server struct {
 	reqReaders     int
 	reqInflight    []*request
 	kernelSettings InitIn
+	connectionDead bool
 
 	// in-flight notify-retrieve queries
 	retrieveMu   sync.Mutex
@@ -77,8 +78,6 @@ type Server struct {
 	canSplice    bool
 	loops        sync.WaitGroup
 	serving      bool // for preventing duplicate Serve() calls
-
-	ready chan error
 
 	// for implementing single threaded processing.
 	requestProcessingMu sync.Mutex
@@ -201,7 +200,6 @@ func NewServer(fs RawFileSystem, mountPoint string, opts *MountOptions) (*Server
 		maxReaders:   maxReaders,
 		retrieveTab:  make(map[uint64]*retrieveCacheRequest),
 		singleReader: useSingleReader,
-		ready:        make(chan error, 1),
 	}
 	ms.reqPool.New = func() interface{} {
 		return &request{
@@ -225,7 +223,7 @@ func NewServer(fs RawFileSystem, mountPoint string, opts *MountOptions) (*Server
 		}
 		mountPoint = filepath.Clean(filepath.Join(cwd, mountPoint))
 	}
-	fd, err := mount(mountPoint, &o, ms.ready)
+	fd, err := mount(mountPoint, &o)
 	if err != nil {
 		return nil, err
 	}
@@ -346,14 +344,14 @@ func (ms *Server) readRequest(exitIdle bool) (req *request, code Status) {
 	if ms.latencies != nil {
 		req.startTime = time.Now()
 	}
-	gobbled := req.setInput(dest[:n])
-
 	ms.reqMu.Lock()
 	defer ms.reqMu.Unlock()
-	// Must parse request.Unique under lock
-	if status := req.parseHeader(); !status.Ok() {
-		return nil, status
+	gobbled := req.setInput(dest[:n])
+	if len(req.inputBuf) < int(unsafe.Sizeof(InHeader{})) {
+		log.Printf("Short read for input header: %v", req.inputBuf)
+		return nil, EINVAL
 	}
+
 	req.inflightIndex = len(ms.reqInflight)
 	ms.reqInflight = append(ms.reqInflight, req)
 	if !gobbled {
@@ -406,7 +404,7 @@ func (ms *Server) returnRequest(req *request) {
 func (ms *Server) recordStats(req *request) {
 	if ms.latencies != nil {
 		dt := time.Now().Sub(req.startTime)
-		opname := operationName(req.inHeader.Opcode)
+		opname := operationName(req.inHeader().Opcode)
 		ms.latencies.Add(opname, dt)
 	}
 }
@@ -517,7 +515,10 @@ exit:
 		case ENOENT:
 			continue
 		case ENODEV:
-			// unmount
+			// Mount was killed. The obvious place to
+			// cancel outstanding requests is at the end
+			// of Serve, but that reader might be blocked.
+			ms.cancelAll()
 			if ms.opts.Debug {
 				ms.opts.Logger.Printf("received ENODEV (unmount request), thread exiting")
 			}
@@ -535,13 +536,26 @@ exit:
 	}
 }
 
+func (ms *Server) cancelAll() {
+	ms.reqMu.Lock()
+	defer ms.reqMu.Unlock()
+	ms.connectionDead = true
+	for _, req := range ms.reqInflight {
+		if !req.interrupted {
+			close(req.cancel)
+			req.interrupted = true
+		}
+	}
+	// Leave ms.reqInflight alone, or returnRequest will barf.
+}
+
 func (ms *Server) handleRequest(req *request) Status {
 	if ms.opts.SingleThreaded {
 		ms.requestProcessingMu.Lock()
 		defer ms.requestProcessingMu.Unlock()
 	}
 
-	req.parse(ms.kernelSettings)
+	req.parse(&ms.kernelSettings)
 	if req.handler == nil {
 		req.status = ENOSYS
 	}
@@ -550,11 +564,11 @@ func (ms *Server) handleRequest(req *request) Status {
 		ms.opts.Logger.Println(req.InputDebug())
 	}
 
-	if req.inHeader.NodeId == pollHackInode ||
-		req.inHeader.NodeId == FUSE_ROOT_ID && len(req.filenames) > 0 && req.filenames[0] == pollHackName {
+	if req.inHeader().NodeId == pollHackInode ||
+		req.inHeader().NodeId == FUSE_ROOT_ID && len(req.filenames) > 0 && req.filenames[0] == pollHackName {
 		doPollHackLookup(ms, req)
 	} else if req.status.Ok() && req.handler.Func == nil {
-		ms.opts.Logger.Printf("Unimplemented opcode %v", operationName(req.inHeader.Opcode))
+		ms.opts.Logger.Printf("Unimplemented opcode %v", operationName(req.inHeader().Opcode))
 		req.status = ENOSYS
 	} else if req.status.Ok() {
 		req.handler.Func(ms, req)
@@ -573,10 +587,10 @@ func (ms *Server) handleRequest(req *request) Status {
 		// RELEASE. This is because RELEASE is analogous to
 		// FORGET, and is not synchronized with the calling
 		// process, but does require a response.
-		if ms.opts.Debug || !(errNo == ENOENT && (req.inHeader.Opcode == _OP_INTERRUPT ||
-			req.inHeader.Opcode == _OP_RELEASE)) {
+		if ms.opts.Debug || !(errNo == ENOENT && (req.inHeader().Opcode == _OP_INTERRUPT ||
+			req.inHeader().Opcode == _OP_RELEASE)) {
 			ms.opts.Logger.Printf("writer: Write/Writev failed, err: %v. opcode: %v",
-				errNo, operationName(req.inHeader.Opcode))
+				errNo, operationName(req.inHeader().Opcode))
 		}
 	}
 	ms.returnRequest(req)
@@ -609,7 +623,7 @@ func (ms *Server) allocOut(req *request, size uint32) []byte {
 
 func (ms *Server) write(req *request) Status {
 	// Forget/NotifyReply do not wait for reply from filesystem server.
-	switch req.inHeader.Opcode {
+	switch req.inHeader().Opcode {
 	case _OP_FORGET, _OP_BATCH_FORGET, _OP_NOTIFY_REPLY:
 		return OK
 	case _OP_INTERRUPT:
@@ -617,7 +631,14 @@ func (ms *Server) write(req *request) Status {
 			return OK
 		}
 	}
-
+	if req.status == EINTR {
+		ms.reqMu.Lock()
+		dead := ms.connectionDead
+		ms.reqMu.Unlock()
+		if dead {
+			return OK
+		}
+	}
 	header := req.serializeHeader(req.flatDataSize())
 	if ms.opts.Debug {
 		ms.opts.Logger.Println(req.OutputDebug())
@@ -631,6 +652,22 @@ func (ms *Server) write(req *request) Status {
 	return s
 }
 
+func newNotifyRequest(opcode uint32) *request {
+	r := &request{
+		inputBuf: make([]byte, unsafe.Sizeof(InHeader{})),
+		handler:  operationHandlers[opcode],
+		status: map[uint32]Status{
+			_OP_NOTIFY_INVAL_INODE:    NOTIFY_INVAL_INODE,
+			_OP_NOTIFY_INVAL_ENTRY:    NOTIFY_INVAL_ENTRY,
+			_OP_NOTIFY_STORE_CACHE:    NOTIFY_STORE_CACHE,
+			_OP_NOTIFY_RETRIEVE_CACHE: NOTIFY_RETRIEVE_CACHE,
+			_OP_NOTIFY_DELETE:         NOTIFY_DELETE,
+		}[opcode],
+	}
+	r.inHeader().Opcode = opcode
+	return r
+}
+
 // InodeNotify invalidates the information associated with the inode
 // (ie. data cache, attributes, etc.)
 func (ms *Server) InodeNotify(node uint64, off int64, length int64) Status {
@@ -638,13 +675,7 @@ func (ms *Server) InodeNotify(node uint64, off int64, length int64) Status {
 		return ENOSYS
 	}
 
-	req := request{
-		inHeader: &InHeader{
-			Opcode: _OP_NOTIFY_INVAL_INODE,
-		},
-		handler: operationHandlers[_OP_NOTIFY_INVAL_INODE],
-		status:  NOTIFY_INVAL_INODE,
-	}
+	req := newNotifyRequest(_OP_NOTIFY_INVAL_INODE)
 
 	entry := (*NotifyInvalInodeOut)(req.outData())
 	entry.Ino = node
@@ -653,7 +684,7 @@ func (ms *Server) InodeNotify(node uint64, off int64, length int64) Status {
 
 	// Protect against concurrent close.
 	ms.writeMu.Lock()
-	result := ms.write(&req)
+	result := ms.write(req)
 	ms.writeMu.Unlock()
 
 	if ms.opts.Debug {
@@ -695,13 +726,7 @@ func (ms *Server) InodeNotifyStoreCache(node uint64, offset int64, data []byte) 
 // inodeNotifyStoreCache32 is internal worker for InodeNotifyStoreCache which
 // handles data chunks not larger than 2GB.
 func (ms *Server) inodeNotifyStoreCache32(node uint64, offset int64, data []byte) Status {
-	req := request{
-		inHeader: &InHeader{
-			Opcode: _OP_NOTIFY_STORE_CACHE,
-		},
-		handler: operationHandlers[_OP_NOTIFY_STORE_CACHE],
-		status:  NOTIFY_STORE_CACHE,
-	}
+	req := newNotifyRequest(_OP_NOTIFY_STORE_CACHE)
 
 	store := (*NotifyStoreOut)(req.outData())
 	store.Nodeid = node
@@ -712,7 +737,7 @@ func (ms *Server) inodeNotifyStoreCache32(node uint64, offset int64, data []byte
 
 	// Protect against concurrent close.
 	ms.writeMu.Lock()
-	result := ms.write(&req)
+	result := ms.write(req)
 	ms.writeMu.Unlock()
 
 	if ms.opts.Debug {
@@ -765,13 +790,7 @@ func (ms *Server) inodeRetrieveCache1(node uint64, offset int64, dest []byte) (n
 		return 0, ENOSYS
 	}
 
-	req := request{
-		inHeader: &InHeader{
-			Opcode: _OP_NOTIFY_RETRIEVE_CACHE,
-		},
-		handler: operationHandlers[_OP_NOTIFY_RETRIEVE_CACHE],
-		status:  NOTIFY_RETRIEVE_CACHE,
-	}
+	req := newNotifyRequest(_OP_NOTIFY_RETRIEVE_CACHE)
 
 	// retrieve up to 2GB not to overflow uint32 size in NotifyRetrieveOut.
 	// see InodeNotifyStoreCache in similar place for why it is only 2GB, not 4GB.
@@ -804,7 +823,7 @@ func (ms *Server) inodeRetrieveCache1(node uint64, offset int64, dest []byte) (n
 
 	// Protect against concurrent close.
 	ms.writeMu.Lock()
-	result := ms.write(&req)
+	result := ms.write(req)
 	ms.writeMu.Unlock()
 
 	if ms.opts.Debug {
@@ -857,13 +876,7 @@ func (ms *Server) DeleteNotify(parent uint64, child uint64, name string) Status 
 		return ms.EntryNotify(parent, name)
 	}
 
-	req := request{
-		inHeader: &InHeader{
-			Opcode: _OP_NOTIFY_DELETE,
-		},
-		handler: operationHandlers[_OP_NOTIFY_DELETE],
-		status:  NOTIFY_DELETE,
-	}
+	req := newNotifyRequest(_OP_NOTIFY_DELETE)
 
 	entry := (*NotifyInvalDeleteOut)(req.outData())
 	entry.Parent = parent
@@ -879,7 +892,7 @@ func (ms *Server) DeleteNotify(parent uint64, child uint64, name string) Status 
 
 	// Protect against concurrent close.
 	ms.writeMu.Lock()
-	result := ms.write(&req)
+	result := ms.write(req)
 	ms.writeMu.Unlock()
 
 	if ms.opts.Debug {
@@ -895,13 +908,7 @@ func (ms *Server) EntryNotify(parent uint64, name string) Status {
 	if !ms.kernelSettings.SupportsNotify(NOTIFY_INVAL_ENTRY) {
 		return ENOSYS
 	}
-	req := request{
-		inHeader: &InHeader{
-			Opcode: _OP_NOTIFY_INVAL_ENTRY,
-		},
-		handler: operationHandlers[_OP_NOTIFY_INVAL_ENTRY],
-		status:  NOTIFY_INVAL_ENTRY,
-	}
+	req := newNotifyRequest(_OP_NOTIFY_INVAL_ENTRY)
 	entry := (*NotifyInvalEntryOut)(req.outData())
 	entry.Parent = parent
 	entry.NameLen = uint32(len(name))
@@ -915,7 +922,7 @@ func (ms *Server) EntryNotify(parent uint64, name string) Status {
 
 	// Protect against concurrent close.
 	ms.writeMu.Lock()
-	result := ms.write(&req)
+	result := ms.write(req)
 	ms.writeMu.Unlock()
 
 	if ms.opts.Debug {
@@ -956,10 +963,6 @@ func (in *InitIn) supportsRenameSwap() bool {
 // avoid racing between accessing the (empty or not yet mounted)
 // mountpoint, and the OS trying to setup the user-space mount.
 func (ms *Server) WaitMount() error {
-	err := <-ms.ready
-	if err != nil {
-		return err
-	}
 	if parseFuseFd(ms.mountPoint) >= 0 {
 		// Magic `/dev/fd/N` mountpoint. We don't know the real mountpoint, so
 		// we cannot run the poll hack.
