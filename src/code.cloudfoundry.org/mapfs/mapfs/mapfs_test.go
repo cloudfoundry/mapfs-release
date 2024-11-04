@@ -18,7 +18,7 @@ import (
 var _ = Describe("mapfs", func() {
 	var (
 		mapFS    pathfs.FileSystem
-		uid, gid int64
+		uid, gid uint32
 
 		fakeFS      *mapfs_fakes.FakeFileSystem
 		fakeSyscall *syscall_fake.FakeSyscall

@@ -21,13 +21,13 @@ const (
 
 type mapFileSystem struct {
 	pathfs.FileSystem
-	uid, gid      int64
+	uid, gid      uint32
 	syscall       syscallshim.Syscall
 	root          string
 	disableXAttrs bool
 }
 
-func NewMapFileSystem(uid, gid int64, fs pathfs.FileSystem, root string, sys syscallshim.Syscall) pathfs.FileSystem {
+func NewMapFileSystem(uid, gid uint32, fs pathfs.FileSystem, root string, sys syscallshim.Syscall) pathfs.FileSystem {
 	// Make sure the Root path is absolute to avoid problems when the
 	// application changes working directory.
 	root, err := filepath.Abs(root)
@@ -78,10 +78,10 @@ func (fs *mapFileSystem) GetAttr(name string, context *fuse.Context) (a *fuse.At
 	a, code = fs.FileSystem.GetAttr(name, context)
 
 	if a != nil {
-		if int64(a.Uid) == fs.uid {
+		if a.Uid == fs.uid {
 			a.Uid = context.Uid
 		}
-		if int64(a.Gid) == fs.gid {
+		if a.Gid == fs.gid {
 			a.Gid = context.Gid
 		}
 	}

@@ -5,8 +5,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"log"
+	"math"
 	"os"
 	"os/signal"
 	"path"
@@ -16,6 +16,8 @@ import (
 	"runtime/pprof"
 	"syscall"
 	"time"
+
+	"gopkg.in/yaml.v3"
 
 	"code.cloudfoundry.org/goshims/syscallshim"
 	"code.cloudfoundry.org/mapfs/mapfs"
@@ -38,6 +40,11 @@ func main() {
 	if flag.NArg() < 2 || *uid <= 0 || *gid <= 0 {
 		fmt.Printf("usage: %s -uid UID -gid GID [-fsname FSNAME] [-auto_cache] [-debug] MOUNTPOINT ORIGINAL\n", path.Base(os.Args[0]))
 		fmt.Println("UID and GID must be > 0")
+		os.Exit(2)
+	}
+	if *uid > math.MaxUint32 || *gid > math.MaxUint32 {
+		fmt.Printf("usage: %s -uid UID -gid GID [-fsname FSNAME] [-auto_cache] [-debug] MOUNTPOINT ORIGINAL\n", path.Base(os.Args[0]))
+		fmt.Printf("UID and GID must be <= %d\n", math.MaxUint32)
 		os.Exit(2)
 	}
 	if *autoCache {
@@ -66,7 +73,7 @@ func main() {
 
 	orig := flag.Arg(1)
 	loopbackfs := pathfs.NewLoopbackFileSystem(orig)
-	finalFs := mapfs.NewMapFileSystem(*uid, *gid, loopbackfs, orig, &syscallshim.SyscallShim{})
+	finalFs := mapfs.NewMapFileSystem(uint32(*uid), uint32(*gid), loopbackfs, orig, &syscallshim.SyscallShim{})
 
 	opts := &nodefs.Options{
 		NegativeTimeout: time.Second,
