@@ -1,9 +1,3 @@
-# mapfs-release
-
-This is a bosh release that packages
-[mapfs](https://github.com/cloudfoundry/mapfs) used by volume drivers to
-map gid/uid of file system operations at a given path.
-
 # Contributing
 
 See the [Contributing.md](./.github/CONTRIBUTING.md) for more
@@ -14,6 +8,12 @@ information on how to contribute.
 This repository is maintained by [App Runtime
 Platform](https://github.com/cloudfoundry/community/blob/main/toc/working-groups/app-runtime-platform.md)
 under `Volume Services` area.
+
+# mapfs-release
+
+This is a bosh release that packages
+[mapfs](https://github.com/cloudfoundry/mapfs) used by volume drivers to
+map gid/uid of file system operations at a given path.
 
 # Docs
 
