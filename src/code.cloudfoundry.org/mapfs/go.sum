@@ -594,8 +594,8 @@ cloud.google.com/go/workflows v1.9.0/go.mod h1:ZGkj1aFIOd9c8Gerkjjq7OW7I5+l6cSvT
 cloud.google.com/go/workflows v1.10.0/go.mod h1:fZ8LmRmZQWacon9UCX1r/g/DfAXx5VcPALq2CxzdePw=
 code.cloudfoundry.org/goshims v0.49.0 h1:UwLcQ3dcfICwGrzRDWWZkPRka+K88RZbBylk8xFOXPc=
 code.cloudfoundry.org/goshims v0.49.0/go.mod h1:+A0cOA+FeFocdlCDhL4QFBWtbnnRuu3LW0seu03e/0A=
-code.cloudfoundry.org/volumedriver v0.104.0 h1:3oscxEK42I7GLFBteCj2QcTB39JSq+rEZwXDWXRTJGo=
-code.cloudfoundry.org/volumedriver v0.104.0/go.mod h1:o/q2eb17cDq0zvmglgszWcmci+hgi/xIJa7I+h7iDQo=
+code.cloudfoundry.org/volumedriver v0.105.0 h1:LMAx/TNLa3W5E5wkxNexSt6TEN+NX/YgtVSiRiH18+s=
+code.cloudfoundry.org/volumedriver v0.105.0/go.mod h1:OhJrYL35wM61vKioPSDx6Co4frXT8I2KrQ7Ppv2hKzQ=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 gioui.org v0.0.0-20210308172011-57750fc8a0a6/go.mod h1:RSH6KIUZ0p2xy5zHDxgAM4zumjgTw83q2ge/PI+yyw8=
 git.sr.ht/~sbinet/gg v0.3.1/go.mod h1:KGYtlADtqsqANL9ueOFkWymvzUvLMQllU5Ixo+8v3pc=
@@ -791,8 +791,8 @@ github.com/googleapis/google-cloud-go-testing v0.0.0-20200911160855-bcd43fbb19e8
 github.com/grpc-ecosystem/grpc-gateway v1.16.0/go.mod h1:BDjrQk3hbvj6Nolgz8mAMFbcEtjT1g+wF4CSlocrBnw=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0/go.mod h1:hgWBS7lorOAVIJEQMi4ZsPv9hVvWI6+ch50m39Pf2Ks=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3/go.mod h1:o//XUCC/F+yRGJoPO/VU0GSB0f8Nhgmxx0VIRUvaC0w=
-github.com/hanwen/go-fuse/v2 v2.6.3 h1:tDcEkLRx93lXu4XyN1/j8Z74VWvhHDl6qU1kNnvFUqI=
-github.com/hanwen/go-fuse/v2 v2.6.3/go.mod h1:ugNaD/iv5JYyS1Rcvi57Wz7/vrLQJo10mmketmoef48=
+github.com/hanwen/go-fuse/v2 v2.6.4 h1:ha5d984M3s3FmoRQcYRPSD4mBsdm72/jIEM31+Aq40s=
+github.com/hanwen/go-fuse/v2 v2.6.4/go.mod h1:ugNaD/iv5JYyS1Rcvi57Wz7/vrLQJo10mmketmoef48=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
