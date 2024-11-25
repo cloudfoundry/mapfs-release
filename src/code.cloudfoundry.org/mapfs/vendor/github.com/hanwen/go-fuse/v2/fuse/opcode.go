@@ -741,6 +741,10 @@ func init() {
 		operationHandlers[op].FileNames = count
 	}
 
+	checkFixedBufferSize()
+}
+
+func checkFixedBufferSize() {
 	var r requestAlloc
 	sizeOfOutHeader := unsafe.Sizeof(OutHeader{})
 	for code, h := range operationHandlers {
