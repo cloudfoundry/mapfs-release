@@ -1,7 +1,7 @@
-build-deps/meson-1.6.0.tar.gz:
-  size: 2277602
-  object_id: d9d62db0-2c8a-4793-795c-c87dfb123da1
-  sha: sha256:999b65f21c03541cf11365489c1fad22e2418bb0c3d50ca61139f2eec09d5496
+build-deps/meson-1.6.1.tar.gz:
+  size: 2276144
+  object_id: 56a76aa5-578e-4e47-786d-4f2560d13a21
+  sha: sha256:1eca49eb6c26d58bbee67fd3337d8ef557c0804e30a6d16bfdf269db997464de
 build-deps/ninja-v1.12.1.tar.gz:
   size: 240524
   object_id: 6ef4bdc0-fddb-4fa3-54cf-0c8644af63af
