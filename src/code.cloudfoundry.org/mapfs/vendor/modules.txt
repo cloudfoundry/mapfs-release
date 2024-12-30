@@ -1,4 +1,4 @@
-# code.cloudfoundry.org/goshims v0.54.0
+# code.cloudfoundry.org/goshims v0.55.0
 ## explicit; go 1.23
 code.cloudfoundry.org/goshims/bufioshim
 code.cloudfoundry.org/goshims/osshim
@@ -62,8 +62,8 @@ github.com/onsi/ginkgo/v2/internal/parallel_support
 github.com/onsi/ginkgo/v2/internal/testingtproxy
 github.com/onsi/ginkgo/v2/reporters
 github.com/onsi/ginkgo/v2/types
-# github.com/onsi/gomega v1.36.1
-## explicit; go 1.22
+# github.com/onsi/gomega v1.36.2
+## explicit; go 1.22.0
 github.com/onsi/gomega
 github.com/onsi/gomega/format
 github.com/onsi/gomega/gbytes
